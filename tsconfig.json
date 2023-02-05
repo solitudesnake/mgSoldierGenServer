@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2016",
+    "module": "commonjs",
+    "lib": [
+      "ES2019",
+      "DOM"
+    ],
+    "allowJs": true,
+    "isolatedModules": false,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "moduleResolution": "NodeNext",
+    "outDir": "./build"
+  },
+  "include": [
+    "src/**/*"
+  ]
+}
