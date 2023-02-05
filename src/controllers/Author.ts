@@ -3,11 +3,14 @@ import mongoose from 'mongoose';
 import Author from '../models/Author';
 
 const createAuthor = (req: Request, res: Response, next: NextFunction) => {
-    const { name } = req.body;
+    const { name, animal, description, images } = req.body;
 
     const author = new Author({
         _id: new mongoose.Types.ObjectId(),
-        name
+        name,
+        animal,
+        description,
+        images
     });
 
     return author
@@ -16,13 +19,13 @@ const createAuthor = (req: Request, res: Response, next: NextFunction) => {
         .catch((error) => res.status(500).json({ error }));
 };
 
-const readAuthor = (req: Request, res: Response, next: NextFunction) => {
-    const authorId = req.params.authorId;
-
-    return Author.findById(authorId)
-        .then((author) => (author ? res.status(200).json({ author }) : res.status(404).json({ message: 'not found' })))
-        .catch((error) => res.status(500).json({ error }));
-};
+// const readAuthor = (req: Request, res: Response, next: NextFunction) => {
+//     const authorId = req.params.authorId;
+//
+//     return Author.findById(authorId)
+//         .then((author) => (author ? res.status(200).json({ author }) : res.status(404).json({ message: 'not found' })))
+//         .catch((error) => res.status(500).json({ error }));
+// };
 
 const readAll = (req: Request, res: Response, next: NextFunction) => {
     return Author.find()
@@ -57,4 +60,4 @@ const deleteAuthor = (req: Request, res: Response, next: NextFunction) => {
         .catch((error) => res.status(500).json({ error }));
 };
 
-export default { createAuthor, readAuthor, readAll, updateAuthor, deleteAuthor };
+export default { createAuthor, readAll, updateAuthor, deleteAuthor };
