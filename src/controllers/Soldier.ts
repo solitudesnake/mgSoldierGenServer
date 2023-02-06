@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
-import Soldier, { IRandomWord, ISoldier, ISoldierModel } from '../models/Soldier';
+import Soldier, { IOrder, IRandomWord, ISoldier, ISoldierModel } from '../models/Soldier';
 import animalList from '../resources/animals';
 
 const saveSoldier = (soldier: ISoldierModel, res: Response) => {
@@ -28,6 +28,63 @@ function getRandomAnimal() {
     return list[Math.floor(Math.random() * list.length) - 1];
 }
 
+function getImages(soldierIdea: string): Promise<any> {
+    const body = {
+        prompt: soldierIdea + ' shinkawa metal gear',
+        style: 'painting',
+        layout: 'square',
+        amount: 4,
+        isHd: false,
+        isPublic: true
+    };
+
+    console.log('body', body);
+
+    return fetch('https://api.neural.love/v1/ai-art/generate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer v1.315f60ddb2c22489bf58381bfc2acc94f8129fd97ec9782474b1a1216c96342a',
+            accept: 'application/json'
+        },
+        body: JSON.stringify(body)
+    })
+        .then((response) => response.json())
+        .then((response) => {
+            // console.log('response1', response);
+            return fetch('https://api.neural.love/v1/ai-art/orders/' + response.orderId, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer v1.315f60ddb2c22489bf58381bfc2acc94f8129fd97ec9782474b1a1216c96342a',
+                    accept: 'application/json',
+                    data: JSON.stringify(body)
+                }
+            })
+                .then((response) => response.json())
+                .then((response) => {
+                    console.log('response----', response);
+                    // console.log('response.output----', response.output);
+                    // console.log('response.output22----', response.output[2]);
+                    const obj: IOrder = {
+                        orderId: response.id,
+                        images: response.output.map((img: { full: any }) => {
+                            console.log('img----', img);
+                            return img.full;
+                        })
+                    };
+
+                    // return obj as IOrder;
+                    return response as any;
+                });
+        });
+
+    // .then((response) => response.json())
+    // .then((response) => {
+    //     console.log('response', response);
+    //     return response as IOrder;
+    // })
+}
+
 const createCustomSoldier = (req: Request, res: Response, next: NextFunction) => {
     const { name, animal, description, images } = req.body;
 
@@ -44,19 +101,31 @@ const createCustomSoldier = (req: Request, res: Response, next: NextFunction) =>
 };
 
 const createRandomSoldier = async (req: Request, res: Response, next: NextFunction) => {
-    const { description, images } = req.body;
-
-    let P1 = await getRandomWord();
-
-    const results = await Promise.all([Promise.resolve(P1.word)]);
+    const { description } = req.body;
 
     const soldier = new Soldier({
         _id: new mongoose.Types.ObjectId(),
-        name: results[0],
+        orderId: '',
+        name: '',
         animal: getRandomAnimal(),
         description,
-        images
+        images: []
     });
+
+    let P1 = await getRandomWord();
+    const results1 = await Promise.all([Promise.resolve(P1.word)]);
+    soldier.name = results1[0];
+    console.log('soldier', soldier);
+
+    let P2 = await getImages(soldier.name + ' ' + soldier.animal);
+    console.log('p2', P2);
+    const results2 = await Promise.all([Promise.resolve(P2.orderId), Promise.resolve(P2.output)]);
+    soldier.orderId = results2[0];
+    soldier.images = results2[1];
+
+    console.log('results2', results2);
+
+    soldier.name = results1[0];
 
     console.log('soldier', soldier);
 

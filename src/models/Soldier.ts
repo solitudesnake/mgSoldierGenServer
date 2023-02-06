@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ISoldier {
+    orderId: string;
     name: string;
     animal: string;
     description?: string;
@@ -9,6 +10,11 @@ export interface ISoldier {
 
 export interface IRandomWord {
     word: string;
+}
+
+export interface IOrder {
+    orderId: string;
+    images?: Array<String>;
 }
 
 export interface ISoldierModel extends ISoldier, Document {}
