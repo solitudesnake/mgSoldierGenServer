@@ -1,9 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import Soldier, { IRandomWord, ISoldier, ISoldierModel } from '../models/Soldier';
-import { urlServicesBack } from '../resources/Word';
 import animalList from '../resources/animals';
-import Axios, { AxiosResponse } from 'axios';
 
 const saveSoldier = (soldier: ISoldierModel, res: Response) => {
     return soldier
@@ -12,18 +10,17 @@ const saveSoldier = (soldier: ISoldierModel, res: Response) => {
         .catch((error) => res.status(500).json({ error }));
 };
 
-// async function getRandomWord(): Promise<{ type: String; required: true }> {
-//     const randomWord: IRandomWord = await urlServicesBack.get('');
-//     return randomWord.word;
-// }
-
-function getRandomWord2() {
-    return Axios.get('https://api.api-ninjas.com/v1/randomword', {
+function getRandomWord(): Promise<IRandomWord> {
+    return fetch('https://api.api-ninjas.com/v1/randomword', {
         headers: {
             'Content-Type': 'application/json',
             'X-Api-Key': 'L1Y+oV0C5EyPnYBtMetOag==M8Zga67TfZEfGM3C'
         }
-    });
+    })
+        .then((response) => response.json())
+        .then((response) => {
+            return response as IRandomWord;
+        });
 }
 
 function getRandomAnimal() {
@@ -49,30 +46,22 @@ const createCustomSoldier = (req: Request, res: Response, next: NextFunction) =>
 const createRandomSoldier = async (req: Request, res: Response, next: NextFunction) => {
     const { description, images } = req.body;
 
-    // console.log('req', req);
+    let P1 = await getRandomWord();
+
+    const results = await Promise.all([Promise.resolve(P1.word)]);
+
     const soldier = new Soldier({
         _id: new mongoose.Types.ObjectId(),
-        name: await getRandomWord2(),
+        name: results[0],
         animal: getRandomAnimal(),
         description,
         images
     });
 
-    const algo = await getRandomWord2();
-    console.log('algo', algo);
     console.log('soldier', soldier);
-    // console.log('getRandomWord()22', getRandomWord());
 
     return saveSoldier(soldier, res);
 };
-
-// const readSoldier = (req: Request, res: Response, next: NextFunction) => {
-//     const soldierId = req.params.soldierId;
-//
-//     return Soldier.findById(soldierId)
-//         .then((soldier) => (soldier ? res.status(200).json({ soldier }) : res.status(404).json({ message: 'not found' })))
-//         .catch((error) => res.status(500).json({ error }));
-// };
 
 const readAll = (req: Request, res: Response, next: NextFunction) => {
     return Soldier.find()
