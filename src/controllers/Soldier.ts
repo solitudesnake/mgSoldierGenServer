@@ -28,17 +28,29 @@ function getRandomAnimal() {
     return list[Math.floor(Math.random() * list.length) - 1];
 }
 
-function getImages(soldierIdea: string): Promise<any> {
+function getImages(orderId: string): Promise<any> {
+    return fetch('https://api.neural.love/v1/ai-art/orders/' + orderId, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer v1.315f60ddb2c22489bf58381bfc2acc94f8129fd97ec9782474b1a1216c96342a',
+            accept: 'application/json'
+        }
+    })
+        .then((response) => response.json())
+        .then((response) => {
+            return response as any;
+        });
+}
+
+function getOrder(soldierIdea: string): Promise<any> {
     const body = {
-        prompt: soldierIdea + ' shinkawa metal gear',
+        prompt: soldierIdea + ' shinkawa',
         style: 'painting',
         layout: 'square',
         amount: 4,
         isHd: false,
         isPublic: true
     };
-
-    console.log('body', body);
 
     return fetch('https://api.neural.love/v1/ai-art/generate', {
         method: 'POST',
@@ -51,38 +63,8 @@ function getImages(soldierIdea: string): Promise<any> {
     })
         .then((response) => response.json())
         .then((response) => {
-            // console.log('response1', response);
-            return fetch('https://api.neural.love/v1/ai-art/orders/' + response.orderId, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: 'Bearer v1.315f60ddb2c22489bf58381bfc2acc94f8129fd97ec9782474b1a1216c96342a',
-                    accept: 'application/json',
-                    data: JSON.stringify(body)
-                }
-            })
-                .then((response) => response.json())
-                .then((response) => {
-                    console.log('response----', response);
-                    // console.log('response.output----', response.output);
-                    // console.log('response.output22----', response.output[2]);
-                    const obj: IOrder = {
-                        orderId: response.id,
-                        images: response.output.map((img: { full: any }) => {
-                            console.log('img----', img);
-                            return img.full;
-                        })
-                    };
-
-                    // return obj as IOrder;
-                    return response as any;
-                });
+            return response as IOrder;
         });
-
-    // .then((response) => response.json())
-    // .then((response) => {
-    //     console.log('response', response);
-    //     return response as IOrder;
-    // })
 }
 
 const createCustomSoldier = (req: Request, res: Response, next: NextFunction) => {
@@ -112,24 +94,42 @@ const createRandomSoldier = async (req: Request, res: Response, next: NextFuncti
         images: []
     });
 
-    let P1 = await getRandomWord();
-    const results1 = await Promise.all([Promise.resolve(P1.word)]);
-    soldier.name = results1[0];
-    console.log('soldier', soldier);
+    await getRandomWord()
+        .then((P1) => {
+            const a = Promise.resolve(P1.word);
+            return a.then((value) => {
+                soldier.name = value;
+            });
+        })
+        .then(() => {
+            return getOrder(soldier.name + ' ' + soldier.animal).then((P2) => {
+                const a = Promise.resolve(P2.orderId);
 
-    let P2 = await getImages(soldier.name + ' ' + soldier.animal);
-    console.log('p2', P2);
-    const results2 = await Promise.all([Promise.resolve(P2.orderId), Promise.resolve(P2.output)]);
-    soldier.orderId = results2[0];
-    soldier.images = results2[1];
-
-    console.log('results2', results2);
-
-    soldier.name = results1[0];
-
-    console.log('soldier', soldier);
-
-    return saveSoldier(soldier, res);
+                console.log('a', a);
+                a.then((value) => {
+                    soldier.orderId = value;
+                });
+            });
+        })
+        .then(() => {
+            console.log('esperando a que esten disponibles');
+            return new Promise((resolve, reject) => {
+                setTimeout(() => resolve(2), 30000);
+            });
+        })
+        .then((value) => {
+            return getImages(soldier.orderId).then((P3) => {
+                const a = Promise.resolve(P3.output);
+                a.then((value) => {
+                    soldier.images = value.map((img: { full: any }) => {
+                        return img.full;
+                    });
+                });
+            });
+        })
+        .then(() => {
+            return saveSoldier(soldier, res);
+        });
 };
 
 const readAll = (req: Request, res: Response, next: NextFunction) => {
