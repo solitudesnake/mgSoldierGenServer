@@ -1,6 +1,6 @@
 import Joi, { ObjectSchema } from 'joi';
 import { NextFunction, Request, Response } from 'express';
-import { IAuthor } from '../models/Author';
+import { ISoldier } from '../models/Soldier';
 // import { IBook } from '../models/Book';
 
 export const ValidateJoi = (schema: ObjectSchema) => {
@@ -18,12 +18,18 @@ export const ValidateJoi = (schema: ObjectSchema) => {
 };
 
 export const Schemas = {
-    author: {
-        create: Joi.object<IAuthor>({
-            name: Joi.string().required()
+    soldier: {
+        create: Joi.object<ISoldier>({
+            name: Joi.string().required(),
+            animal: Joi.string().required(),
+            description: Joi.string(),
+            images: Joi.array()
         }),
-        update: Joi.object<IAuthor>({
-            name: Joi.string().required()
+        update: Joi.object<ISoldier>({
+            name: Joi.string().required(),
+            animal: Joi.string().required(),
+            description: Joi.string(),
+            images: Joi.array()
         })
     }
 };

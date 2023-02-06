@@ -2,22 +2,18 @@ import express from 'express';
 import http from 'http';
 import mongoose from 'mongoose';
 import { config } from './config/config';
-// import authorRoutes from './routes/Author';
-// import bookRoutes from './routes/Book';
-//
+import soldierRoutes from './routes/Soldier';
+
 const router = express();
 
 /** Connect to Mongo */
-console.log('log', config.mongo);
 mongoose
     .connect(config.mongo.url, { retryWrites: true, w: 'majority' })
     .then(() => {
         console.log('Mongo connected successfully.');
         StartServer();
-        // console.log('asdadasd conected');
     })
     .catch((error) => console.log(error));
-// .catch((error) => Logging.error(error));
 
 /** Only Start Server if Mongoose Connects */
 const StartServer = () => {
@@ -40,7 +36,7 @@ const StartServer = () => {
     /** Rules of our API */
     router.use((req, res, next) => {
         res.header('Access-Control-Allow-Origin', '*');
-        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Soldierization');
 
         if (req.method == 'OPTIONS') {
             res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
@@ -51,8 +47,7 @@ const StartServer = () => {
     });
 
     /** Routes */
-    // router.use('/authors', authorRoutes);
-    // router.use('/books', bookRoutes);
+    router.use('/soldiers', soldierRoutes);
 
     /** Healthcheck */
     router.get('/ping', (req, res, next) => res.status(200).json({ hello: 'world' }));

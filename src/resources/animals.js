@@ -1,0 +1,23 @@
+export default [
+    'Naked Mole Rat',
+    'Narwhal',
+    'Neanderthal',
+    'Neapolitan Masti',
+    'Newfoundland',
+    'Newfypoo',
+    'Newt',
+    'Nigerian Goat',
+    'Nightingale',
+    'Nile Crocodile',
+    'No See Ums',
+    'Norfolk Terrier',
+    'North American Black Beak',
+    'Northern Alligator Lizard',
+    'Northern Cardinal',
+    'Northern Inuit Dog',
+    'Norwegian Forest',
+    'Norwich Terrier',
+    'Nubian Goat',
+    'Numbat',
+    'Nurse Shark'
+];
