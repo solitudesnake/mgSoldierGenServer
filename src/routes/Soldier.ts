@@ -4,8 +4,8 @@ import { Schemas, ValidateJoi } from '../middleware/joi';
 
 const router = express.Router();
 
-router.post('/createCustom', ValidateJoi(Schemas.soldier.create), controller.createCustomSoldier);
-router.post('/createRandom', controller.createRandomSoldier);
+router.post('/createCustom', ValidateJoi(Schemas.soldier.create), controller.createSoldier);
+router.post('/createRandom', controller.createSoldier);
 // router.get('/get/:soldierId', controller.readSoldier);
 router.get('/get', controller.readAll);
 router.patch('/update/:soldierId', ValidateJoi(Schemas.soldier.update), controller.updateSoldier);

@@ -24,6 +24,7 @@ const SoldierSchema: Schema = new Schema(
         name: { type: String, required: true },
         animal: { type: String, required: true },
         description: { type: String },
+        orderId: { type: String },
         images: { type: Array }
     },
     {

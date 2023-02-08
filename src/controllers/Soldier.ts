@@ -44,8 +44,8 @@ function getImages(orderId: string): Promise<any> {
 
 function getOrder(soldierIdea: string): Promise<any> {
     const body = {
-        prompt: soldierIdea + ' shinkawa',
-        style: 'painting',
+        prompt: 'Shinkawa black and white ' + soldierIdea,
+        style: 'sci-fi',
         layout: 'square',
         amount: 4,
         isHd: false,
@@ -67,46 +67,34 @@ function getOrder(soldierIdea: string): Promise<any> {
         });
 }
 
-const createCustomSoldier = (req: Request, res: Response, next: NextFunction) => {
-    const { name, animal, description, images } = req.body;
-
-    console.log('req', req);
-    const soldier = new Soldier({
-        _id: new mongoose.Types.ObjectId(),
-        name,
-        animal,
-        description,
-        images
-    });
-
-    return saveSoldier(soldier, res);
-};
-
-const createRandomSoldier = async (req: Request, res: Response, next: NextFunction) => {
-    const { description } = req.body;
+const createSoldier = async (req: Request, res: Response, next: NextFunction) => {
+    const { name, animal, description } = req.body;
 
     const soldier = new Soldier({
         _id: new mongoose.Types.ObjectId(),
         orderId: '',
-        name: '',
-        animal: getRandomAnimal(),
+        name,
+        animal,
         description,
         images: []
     });
 
-    await getRandomWord()
-        .then((P1) => {
-            const a = Promise.resolve(P1.word);
-            return a.then((value) => {
-                soldier.name = value;
-            });
+    new Promise((resolve) => resolve(1))
+        .then(() => {
+            if (name === undefined) {
+                return getRandomWord().then((P1) => {
+                    const word = Promise.resolve(P1.word);
+                    return word.then((value) => {
+                        soldier.name = value;
+                        soldier.animal = getRandomAnimal();
+                    });
+                });
+            } else return;
         })
         .then(() => {
             return getOrder(soldier.name + ' ' + soldier.animal).then((P2) => {
-                const a = Promise.resolve(P2.orderId);
-
-                console.log('a', a);
-                a.then((value) => {
+                const id = Promise.resolve(P2.orderId);
+                id.then((value) => {
                     soldier.orderId = value;
                 });
             });
@@ -114,13 +102,14 @@ const createRandomSoldier = async (req: Request, res: Response, next: NextFuncti
         .then(() => {
             console.log('esperando a que esten disponibles');
             return new Promise((resolve, reject) => {
-                setTimeout(() => resolve(2), 30000);
+                setTimeout(() => resolve(2), 40000);
             });
         })
-        .then((value) => {
+        .then(() => {
             return getImages(soldier.orderId).then((P3) => {
-                const a = Promise.resolve(P3.output);
-                a.then((value) => {
+                console.log(P3);
+                const list = Promise.resolve(P3.output);
+                list.then((value) => {
                     soldier.images = value.map((img: { full: any }) => {
                         return img.full;
                     });
@@ -165,4 +154,4 @@ const deleteSoldier = (req: Request, res: Response, next: NextFunction) => {
         .catch((error) => res.status(500).json({ error }));
 };
 
-export default { createRandomSoldier, createCustomSoldier, readAll, updateSoldier, deleteSoldier };
+export default { createSoldier, readAll, updateSoldier, deleteSoldier };
