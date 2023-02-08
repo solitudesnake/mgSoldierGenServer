@@ -22,14 +22,15 @@ export const Schemas = {
         create: Joi.object<ISoldier>({
             name: Joi.string().required(),
             animal: Joi.string().required(),
-            description: Joi.string(),
-            images: Joi.array()
-        }),
-        update: Joi.object<ISoldier>({
-            name: Joi.string().required(),
-            animal: Joi.string().required(),
-            description: Joi.string(),
+            description: Joi.array(),
             images: Joi.array()
         })
+        // update: Joi.object<ISoldier>({
+        //     name: Joi.string().required(),
+        //     animal: Joi.string().required(),
+        //     description: Joi.array(),
+        //     images: Joi.array(),
+        //     orderId: Joi.string()
+        // })
     }
 };

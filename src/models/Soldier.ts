@@ -4,7 +4,7 @@ export interface ISoldier {
     orderId: string;
     name: string;
     animal: string;
-    description?: string;
+    description?: Array<String>;
     images?: Array<String>;
 }
 
@@ -23,7 +23,7 @@ const SoldierSchema: Schema = new Schema(
     {
         name: { type: String, required: true },
         animal: { type: String, required: true },
-        description: { type: String },
+        description: { type: Array },
         orderId: { type: String },
         images: { type: Array }
     },

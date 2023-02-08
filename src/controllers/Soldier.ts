@@ -2,11 +2,31 @@ import { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import Soldier, { IOrder, IRandomWord, ISoldier, ISoldierModel } from '../models/Soldier';
 import animalList from '../resources/animals';
+import { getDescription } from '../resources/description';
 
 const saveSoldier = (soldier: ISoldierModel, res: Response) => {
     return soldier
         .save()
         .then((soldier: ISoldier) => res.status(201).json({ soldier }))
+        .catch((error) => res.status(500).json({ error }));
+};
+
+const updateImages = (soldier: ISoldierModel, res: Response) => {
+    const id = soldier._id;
+
+    return Soldier.findById(id)
+        .then((newSoldier) => {
+            if (newSoldier) {
+                newSoldier.set(soldier);
+
+                return newSoldier
+                    .save()
+                    .then((newSoldier) => res.status(201).json({ newSoldier }))
+                    .catch((error) => res.status(500).json({ error }));
+            } else {
+                return res.status(404).json({ message: 'not found' });
+            }
+        })
         .catch((error) => res.status(500).json({ error }));
 };
 
@@ -44,7 +64,7 @@ function getImages(orderId: string): Promise<any> {
 
 function getOrder(soldierIdea: string): Promise<any> {
     const body = {
-        prompt: 'Shinkawa black and white ' + soldierIdea,
+        prompt: 'Shinkawa black and white soldier ' + soldierIdea + ' like',
         style: 'sci-fi',
         layout: 'square',
         amount: 4,
@@ -68,14 +88,14 @@ function getOrder(soldierIdea: string): Promise<any> {
 }
 
 const createSoldier = async (req: Request, res: Response, next: NextFunction) => {
-    const { name, animal, description } = req.body;
+    const { name, animal } = req.body;
 
     const soldier = new Soldier({
         _id: new mongoose.Types.ObjectId(),
         orderId: '',
         name,
         animal,
-        description,
+        description: [],
         images: []
     });
 
@@ -87,9 +107,13 @@ const createSoldier = async (req: Request, res: Response, next: NextFunction) =>
                     return word.then((value) => {
                         soldier.name = value;
                         soldier.animal = getRandomAnimal();
+                        soldier.description = getDescription();
                     });
                 });
-            } else return;
+            } else {
+                soldier.description = getDescription();
+                return;
+            }
         })
         .then(() => {
             return getOrder(soldier.name + ' ' + soldier.animal).then((P2) => {
@@ -102,7 +126,7 @@ const createSoldier = async (req: Request, res: Response, next: NextFunction) =>
         .then(() => {
             console.log('esperando a que esten disponibles');
             return new Promise((resolve, reject) => {
-                setTimeout(() => resolve(2), 40000);
+                setTimeout(() => resolve(2), 15000);
             });
         })
         .then(() => {
@@ -128,22 +152,24 @@ const readAll = (req: Request, res: Response, next: NextFunction) => {
 };
 
 const updateSoldier = (req: Request, res: Response, next: NextFunction) => {
-    const soldierId = req.params.soldierId;
+    const soldier_ = req.body;
+    const orderId = req.body.orderId;
 
-    return Soldier.findById(soldierId)
-        .then((soldier) => {
-            if (soldier) {
-                soldier.set(req.body);
-
-                return soldier
-                    .save()
-                    .then((soldier) => res.status(201).json({ soldier }))
-                    .catch((error) => res.status(500).json({ error }));
-            } else {
-                return res.status(404).json({ message: 'not found' });
-            }
+    new Promise((resolve) => resolve(1))
+        .then(() => {
+            return getImages(orderId).then((P3) => {
+                // console.log(P3);
+                const list = Promise.resolve(P3.output);
+                list.then((value) => {
+                    soldier_.images = value.map((img: { full: any }) => {
+                        return img.full;
+                    });
+                });
+            });
         })
-        .catch((error) => res.status(500).json({ error }));
+        .then(() => {
+            return updateImages(soldier_, res);
+        });
 };
 
 const deleteSoldier = (req: Request, res: Response, next: NextFunction) => {
